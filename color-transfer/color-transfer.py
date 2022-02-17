@@ -1,15 +1,24 @@
-
 import cv2
 import numpy as np
 import sys
 
+RGB_to_LMS = np.array([[0.3811, 0.5783, 0.0402],
+                       [0.1967, 0.7244, 0.0782],
+                       [0.0241, 0.1288, 0.8444]])
+
+LMS_to_RGB = np.array([[4.4679, -3.5873, 0.1193],
+                       [-1.2186, 2.3809, -0.1624],
+                       [0.0497, -0.2439, 1.2045]])
+
+LMS_to_CIECAM97s = np.array([[2.00, 1.00, 0.095],
+                             [1.00, -1.09, 0.09],
+                             [0.11, 0.11, -0.22]])
+
 def convert_color_space_BGR_to_RGB(img_BGR):
-    # img_RGB = np.zeros_like(img_BGR,dtype=np.float32)
     img_RGB = img_BGR[:, :, ::-1]
     return img_RGB
 
 def convert_color_space_RGB_to_BGR(img_RGB):
-    # img_BGR = np.zeros_like(img_RGB,dtype=np.float32)
     img_BGR = img_RGB[:, :, ::-1]
     return img_BGR
 
@@ -19,12 +28,6 @@ def convert_color_space_RGB_to_Lab(img_RGB):
     '''
     height = img_RGB.shape[0]
     width = img_RGB.shape[1]
-
-    RGB_to_LMS = np.array([
-        [0.3811, 0.5783, 0.0402],
-        [0.1967, 0.7244, 0.0782],
-        [0.0241, 0.1288, 0.8444],
-    ])
 
     # Convert to LMS Cone Space
     img_LMS = np.zeros_like(img_RGB,dtype=np.float32)
@@ -81,10 +84,6 @@ def convert_color_space_Lab_to_RGB(img_Lab):
     # undo log10
     img_LMS = pow(10, img_LMS)
 
-    LMS_to_RGB = np.array([[4.4679, -3.5873, 0.1193],
-                           [-1.2186, 2.3809, -0.1624],
-                           [0.0497, -0.2439, 1.2045]])
-
     img_RGB = np.zeros_like(img_Lab,dtype=np.float32)
 
     for h in range(height):
@@ -101,14 +100,6 @@ def convert_color_space_RGB_to_CIECAM97s(img_RGB):
     height = img_RGB.shape[0]
     width = img_RGB.shape[1]
     img_CIECAM97s = np.zeros_like(img_RGB, dtype=np.float32)
-
-    RGB_to_LMS = np.array([[0.3811, 0.5783, 0.0402],
-                           [0.1967, 0.7244, 0.0782],
-                           [0.0241, 0.1288, 0.8444]])
-
-    LMS_to_CIECAM97s = np.array([[2.00, 1.00, 0.095],
-                                 [1.00, -1.09, 0.09],
-                                 [0.11, 0.11, -0.22]])
 
     # Convert to LMS Cone Space
     img_LMS = np.zeros_like(img_RGB, dtype=np.float32)
@@ -361,10 +352,6 @@ if __name__ == "__main__":
     # write to a file
     cv2.imwrite(path_file_image_result_in_Lab, img_BGR_new_Lab)
 
-    # calculate RMSE
-    # result_lab_ref = cv2.imread('./result_lab_ref.png')
-    # print('RMSE: ' + str(np.sqrt(np.mean((img_BGR_new_Lab - result_lab_ref) ** 2))))
-
     # ===== Color Transfer in RGB
     img_RGB_new_RGB       = color_transfer(img_RGB_source, img_RGB_target, option='in_RGB')
     # Adjust pixel values
@@ -375,10 +362,6 @@ if __name__ == "__main__":
     # write to a file
     cv2.imwrite(path_file_image_result_in_RGB, img_BGR_new_RGB)
 
-    # calculate RMSE
-    # result_rgb_ref = cv2.imread('./result_rgb_ref.png')
-    # print('RMSE: ' + str(np.sqrt(np.mean((img_BGR_new_RGB - result_rgb_ref) ** 2))))
-
     # ===== Color Transfer in CIECAM97s
     img_RGB_new_CIECAM97s = color_transfer(img_RGB_source, img_RGB_target, option='in_CIECAM97s')
 
@@ -388,7 +371,3 @@ if __name__ == "__main__":
     img_BGR_new_CIECAM97s = np.uint8(img_BGR_new_CIECAM97s)
 
     cv2.imwrite(path_file_image_result_in_CIECAM97s, img_BGR_new_CIECAM97s)
-
-    # calculate RMSE
-    # result_cie_ref = cv2.imread('./result_cie_ref.png')
-    # print('RMSE: ' + str(np.sqrt(np.mean((img_BGR_new_CIECAM97s - result_cie_ref) ** 2))))
