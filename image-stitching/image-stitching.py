@@ -1,8 +1,9 @@
-import cv2
 import sys
-import numpy as np
 import random
 import math
+import cv2
+import numpy as np
+
 np.seterr(divide='ignore', invalid='ignore')
 
 def ex_find_homography_ransac(list_pairs_matched_keypoints, threshold_ratio_inliers=0.85, threshold_reprojection_error=3, max_num_trial=3000):
@@ -82,7 +83,6 @@ def ex_extract_and_match_feature(img_1, img_2, ratio_robustness=0.7):
     # ==============================
 
     list_pairs_matched_keypoints = []
-    # good_matches = [] # for image display
 
     img_1_gray = cv2.cvtColor(img_1, cv2.COLOR_BGR2GRAY)
     img_2_gray = cv2.cvtColor(img_2, cv2.COLOR_BGR2GRAY)
@@ -109,15 +109,6 @@ def ex_extract_and_match_feature(img_1, img_2, ratio_robustness=0.7):
             p2x = q.pt[0]
             p2y = q.pt[1]
             list_pairs_matched_keypoints.append([[p1x, p1y], [p2x, p2y]])
-            # # for image display
-            # match = cv2.DMatch(i, temp_list[0][0], distance)
-            # good_matches.append(match)
-
-    # # display image with matched keypoints
-    # img_matches = cv2.drawMatches(img_1, img_1_keypoints, img_2, img_2_keypoints, good_matches, None,
-    #                               flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-    # cv2.imshow('matches', img_matches)
-    # cv2.waitKey(0)
 
     return list_pairs_matched_keypoints
 
@@ -212,7 +203,6 @@ if __name__ == "__main__":
     path_file_image_1 = sys.argv[1]
     path_file_image_2 = sys.argv[2]
     path_file_image_result = sys.argv[3]
-
 
     # ===== read 2 input images
     img_1 = cv2.imread(path_file_image_1)
