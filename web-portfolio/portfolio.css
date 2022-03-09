@@ -6,31 +6,31 @@
     margin-bottom: 2rem;
 }
 
-#about {
+.about {
     justify-content: center;
     text-align: center;
 }
 
-#education-skills {
+.education-skills {
     justify-content: center;
     text-align: center;
 }
 
-#projects {
+.projects {
     justify-content: center;
     text-align: center;
 }
 
-#contact {
+.contact {
     justify-content: center;
     text-align: center;
 }
 
-#footer {
+.footer {
     text-align: end;
 }
 
-#steve {
+.steve {
     border-radius: 15px;
 }
 
