@@ -6,20 +6,20 @@ import numpy as np
 
 np.seterr(divide='ignore', invalid='ignore')
 
+
 def ex_find_homography_ransac(list_pairs_matched_keypoints, threshold_ratio_inliers=0.85, threshold_reprojection_error=3, max_num_trial=3000):
     '''
     Apply RANSAC algorithm to find a homography transformation matrix that align 2 sets of feature points, transform the first set of feature point to the second (e.g. warp image 1 to image 2)
     :param list_pairs_matched_keypoints: has the format as a list of pairs of matched points: [[[p1x,p1y],[p2x,p2y]],....]
     :param threshold_ratio_inliers: threshold on the ratio of inliers over the total number of samples, accept the estimated homography if ratio is higher than the threshold
-    :param threshold_reprojtion_error: threshold of reprojection error (measured as euclidean distance, in pixels) to determine whether a sample is inlier or outlier
+    :param threshold_reprojection_error: threshold of reprojection error (measured as euclidean distance, in pixels) to determine whether a sample is inlier or outlier
     :param max_num_trial: the maximum number of trials to do take sample and do testing to find the best homography matrix
     :return best_H: the best found homography matrix
     '''
     best_H = None
     best_H_num_inliers = 0
-    best_H_percent_inliers = 0
     for i in range(max_num_trial):
-        samples = random.sample(list_pairs_matched_keypoints, 4) # samples
+        samples = random.sample(list_pairs_matched_keypoints, 4)  # samples
         points_1 = [item[0] for item in samples]
         points_2 = [item[1] for item in samples]
 
@@ -27,12 +27,12 @@ def ex_find_homography_ransac(list_pairs_matched_keypoints, threshold_ratio_inli
         index = 0
         P = np.zeros((8, 9), dtype=np.float32)
 
-        for i in range(0, len(points_1)):
-            x_0 = points_1[i][0]
-            y_0 = points_1[i][1]
+        for j in range(0, len(points_1)):
+            x_0 = points_1[j][0]
+            y_0 = points_1[j][1]
 
-            x_1 = points_2[i][0]
-            y_1 = points_2[i][1]
+            x_1 = points_2[j][0]
+            y_1 = points_2[j][1]
 
             P[index] = [-x_0, -y_0, -1, 0, 0, 0, x_0 * x_1, y_0 * x_1, x_1]
             P[index + 1] = [0, 0, 0, -x_0, -y_0, -1, x_0 * y_1, y_0 * y_1, y_1]
@@ -41,7 +41,7 @@ def ex_find_homography_ransac(list_pairs_matched_keypoints, threshold_ratio_inli
 
         U, S, V = np.linalg.svd(np.array(P, dtype=np.float32))
 
-        H = V[-1: :].reshape(3, 3) / V[-1, -1]
+        H = V[-1::].reshape(3, 3) / V[-1, -1]
 
         # count inliers
         num_inliers = 0
@@ -62,11 +62,11 @@ def ex_find_homography_ransac(list_pairs_matched_keypoints, threshold_ratio_inli
         # In case we don't find an H above the threshold, return the next best one
         if num_inliers > best_H_num_inliers:
             best_H_num_inliers = num_inliers
-            best_H_percent_inliers = best_H_num_inliers / len(list_pairs_matched_keypoints)
             best_H = H
 
     print("Percent Inliers: " + str(best_H_num_inliers))
     return best_H
+
 
 def ex_extract_and_match_feature(img_1, img_2, ratio_robustness=0.7):
     '''
@@ -112,7 +112,8 @@ def ex_extract_and_match_feature(img_1, img_2, ratio_robustness=0.7):
 
     return list_pairs_matched_keypoints
 
-def ex_warp_blend_crop_image(img_1,H_1,img_2):
+
+def ex_warp_blend_crop_image(img_1, H_1, img_2):
     '''
     1/ warp image img_1 using the homography H_1 to align it with image img_2 (using backward warping and bilinear resampling)
     2/ stitch image img_1 to image img_2 and apply average blending to blend the 2 images into a single panorama image
@@ -122,7 +123,6 @@ def ex_warp_blend_crop_image(img_1,H_1,img_2):
     :param img_2:
     :return img_panorama: resulting panorama image
     '''
-    img_panorama = None
     # =====  use a backward warping algorithm to warp the source
     # 1/ to do so, we first create the inverse transform; 2/ use bilinear interpolation for resampling
 
@@ -158,11 +158,11 @@ def ex_warp_blend_crop_image(img_1,H_1,img_2):
 
     img = canvas_img1 + canvas_img2
     mask = mask_img1 + mask_img2
-    mask = np.tile(np.expand_dims(mask, 2),(1, 1, 3))
+    mask = np.tile(np.expand_dims(mask, 2), (1, 1, 3))
     img = np.divide(img, mask)
 
     # ===== find the best bounding box for the resulting stitched image so that it will contain all pixels from 2 original images
-    mask_check = 1.0-np.float32(mask[:,:,0]>0)
+    mask_check = 1.0-np.float32(mask[:, :, 0] > 0)
     check_h = np.sum(mask_check[:, :], 1)
     check_w = np.sum(mask_check[:, :], 0)
     bottom = np.min(np.where(check_h < w * 3))
@@ -172,6 +172,7 @@ def ex_warp_blend_crop_image(img_1,H_1,img_2):
 
     img_panorama = img[bottom:top, left:right]
     return img_panorama
+
 
 def stitch_images(img_1, img_2):
     '''
@@ -190,10 +191,10 @@ def stitch_images(img_1, img_2):
     H_1 = ex_find_homography_ransac(list_pairs_matched_keypoints, threshold_ratio_inliers=0.85, threshold_reprojection_error=3, max_num_trial=1000)
 
     # ===== warp image 1, blend it with image 2 using average blending to produce the resulting panorama image
-    img_panorama = ex_warp_blend_crop_image(img_1=img_1,H_1=H_1, img_2=img_2)
-
+    img_panorama = ex_warp_blend_crop_image(img_1=img_1, H_1=H_1, img_2=img_2)
 
     return img_panorama
+
 
 if __name__ == "__main__":
     print('==================================================')
@@ -212,4 +213,4 @@ if __name__ == "__main__":
     img_panorama = stitch_images(img_1=img_1, img_2=img_2)
 
     # ===== save panorama image
-    cv2.imwrite(filename=path_file_image_result, img=(img_panorama).clip(0.0, 255.0).astype(np.uint8))
+    cv2.imwrite(filename=path_file_image_result, img=img_panorama.clip(0.0, 255.0).astype(np.uint8))
